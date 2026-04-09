@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ceres</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: #0d0d0d; overflow: hidden; }
+    canvas { display: block; }
+
+    #label {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font: normal 10px/1 Georgia, serif;
+      letter-spacing: 0.18em; color: #1a1a1a;
+      pointer-events: none; user-select: none; z-index: 5;
+    }
+    #tooltip {
+      position: fixed; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+      font: normal 11px/1 Georgia, serif;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(200,200,200,0.7); white-space: nowrap;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.2s; z-index: 20;
+    }
+    #overlay {
+      position: fixed; inset: 0; background: #0d0d0d;
+      opacity: 0; pointer-events: none; z-index: 100;
+    }
+    .back {
+      position: fixed; top: 30px; left: 35px;
+      font: normal 11px/1 Georgia, serif;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(200,200,200,0.4); text-decoration: none; z-index: 20;
+    }
+    .back:hover { color: rgba(200,200,200,0.85); }
+  </style>
+</head>
+<body>
+
+<a class="back" id="back" href="../../">&#8592; K - T - B</a>
+<div id="label">Ceres</div>
+<div id="tooltip"></div>
+<div id="overlay"></div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js';
+
+// ── Renderer ───────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x0d0d0d);
+document.body.appendChild(renderer.domElement);
+
+// ── Scene / Camera ─────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 1, 8000);
+
+const CAM_FROM = new THREE.Vector3(0, 3000, 7000);
+const CAM_REST = new THREE.Vector3(0, 300, 700);
+camera.position.copy(CAM_FROM);
+camera.lookAt(0, 0, 0);
+
+let entering = true;
+const ENTER_T0  = performance.now();
+const ENTER_DUR = 1300;
+
+// ── Lighting ───────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.position.set(200, 500, 300);
+scene.add(sun);
+
+// ── Stars ──────────────────────────────────────────────────────────────────
+{
+  const n = 1200, pos = new Float32Array(n * 3);
+  for (let i = 0; i < pos.length; i++) pos[i] = (Math.random() - 0.5) * 5000;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({
+    color: 0xffffff, size: 1.5, transparent: true, opacity: 0.35
+  })));
+}
+
+// ── Center sphere (Ceres) ──────────────────────────────────────────────────
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(50, 32, 32),
+  new THREE.MeshStandardMaterial({ color: 0xc8c8c8, roughness: 0.7, metalness: 0.05 })
+));
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const D2R = Math.PI / 180;
+
+function orbitPos(r, θ, incl) {
+  const i = incl * D2R;
+  return new THREE.Vector3(
+    r * Math.sin(θ),
+    -r * Math.cos(θ) * Math.sin(i),
+    r * Math.cos(θ) * Math.cos(i)
+  );
+}
+
+function makeRing(r, incl) {
+  const pts = [], i = incl * D2R, N = 128;
+  for (let j = 0; j <= N; j++) {
+    const θ = (j / N) * Math.PI * 2;
+    pts.push(new THREE.Vector3(
+      r * Math.sin(θ),
+      -r * Math.cos(θ) * Math.sin(i),
+      r * Math.cos(θ) * Math.cos(i)
+    ));
+  }
+  return new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 })
+  );
+}
+
+// ── Poem data ──────────────────────────────────────────────────────────────
+const DATA = [
+  { name: 'Cabin',                             r:  90, size:  9, dur:  22, start:   0, incl:  10, href: 'poems/cabin.html'          },
+  { name: 'Forgetting Something You Remembered', r: 118, size:  8, dur:  30, start:  30, incl: -18, href: 'poems/forgetting.html'      },
+  { name: 'LAST MIDDLE TOP SMALL TALL',        r: 148, size: 10, dur:  38, start:  60, incl:  22, href: 'poems/lmtst.html'            },
+  { name: 'Under the Glow',                    r: 178, size:  9, dur:  47, start:  90, incl:  -8, href: 'poems/under-the-glow.html'   },
+  { name: 'Reaching into the Past',            r: 208, size:  8, dur:  57, start: 120, incl:  15, href: 'poems/reaching.html'         },
+  { name: 'Missing the Idea of You',           r: 238, size:  9, dur:  67, start: 150, incl: -25, href: 'poems/missing.html'          },
+  { name: 'Ablution',                          r: 268, size: 12, dur:  78, start: 180, incl:  12, href: 'poems/ablution.html'         },
+  { name: 'Autumn',                            r: 298, size:  9, dur:  90, start: 210, incl:  -5, href: 'poems/autumn.html'           },
+  { name: 'The Immortal Cat',                  r: 330, size: 11, dur: 103, start: 240, incl:  20, href: 'poems/immortal-cat.html'     },
+  { name: 'Return',                            r: 362, size:  8, dur: 117, start: 270, incl: -14, href: 'poems/return.html'           },
+  { name: 'Pseudepigrapha',                    r: 398, size: 18, dur: 132, start: 300, incl:   8, href: 'poems/pseudepigrapha.html'   },
+  { name: 'The Esoteric Plane',                r: 440, size: 12, dur: 148, start: 330, incl: -18, href: 'poems/esoteric-plane.html'   },
+];
+
+const planets = [], meshes = [];
+
+DATA.forEach(d => {
+  scene.add(makeRing(d.r, d.incl));
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(d.size, 24, 24),
+    new THREE.MeshStandardMaterial({ color: 0xc8c8c8, roughness: 0.8, metalness: 0.05 })
+  );
+  const angle = d.start * D2R;
+  mesh.position.copy(orbitPos(d.r, angle, d.incl));
+  scene.add(mesh);
+  const p = { ...d, mesh, angle, speed: (Math.PI * 2) / (d.dur * 60), paused: false };
+  mesh.userData = p;
+  planets.push(p);
+  meshes.push(mesh);
+});
+
+// ── Camera spherical coords ────────────────────────────────────────────────
+const spherical = new THREE.Spherical().setFromVector3(CAM_REST);
+
+// ── Interaction ────────────────────────────────────────────────────────────
+const rc    = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+const overlay = document.getElementById('overlay');
+let hovered = null, transitioning = false;
+let isDown = false, isDrag = false;
+let downX = 0, downY = 0, prevX = 0, prevY = 0;
+
+renderer.domElement.addEventListener('mousemove', e => {
+  const dx = e.clientX - prevX;
+  const dy = e.clientY - prevY;
+  prevX = e.clientX; prevY = e.clientY;
+
+  if (isDown) {
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 4) isDrag = true;
+    if (isDrag && !transitioning && !entering) {
+      spherical.theta -= dx * 0.005;
+      spherical.phi = Math.max(0.05, Math.min(Math.PI * 0.88, spherical.phi - dy * 0.005));
+      camera.position.setFromSpherical(spherical);
+      camera.lookAt(0, 0, 0);
+    }
+  }
+
+  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  rc.setFromCamera(mouse, camera);
+  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+
+  if (hit !== hovered) {
+    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xc8c8c8); }
+    hovered = hit;
+    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+    tooltip.textContent = hovered?.name ?? '';
+    tooltip.style.opacity = hovered ? '1' : '0';
+  }
+
+  renderer.domElement.style.cursor =
+    (isDown && isDrag) ? 'grabbing' : hovered ? 'pointer' : 'default';
+});
+
+renderer.domElement.addEventListener('mousedown', e => {
+  isDown = true; isDrag = false;
+  downX = prevX = e.clientX;
+  downY = prevY = e.clientY;
+  renderer.domElement.style.cursor = 'grabbing';
+});
+
+renderer.domElement.addEventListener('mouseup', () => {
+  const dragged = isDrag;
+  isDown = false; isDrag = false;
+  renderer.domElement.style.cursor = hovered ? 'pointer' : 'default';
+  if (dragged || transitioning || entering || !hovered) return;
+
+  const p = hovered;
+  transitioning = true;
+
+  const fromPos = camera.position.clone();
+  const dir = fromPos.clone().sub(p.mesh.position).normalize();
+  const toPos = p.mesh.position.clone().add(dir.multiplyScalar(p.size * 4));
+
+  overlay.style.transition = 'opacity 0.45s ease 0.25s';
+  overlay.style.opacity = '1';
+  zoomState = { fromPos, toPos, lookAt: p.mesh.position.clone(), t0: performance.now(), dur: 720 };
+  setTimeout(() => { window.location.href = p.href; }, 780);
+});
+
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  spherical.radius = Math.max(150, Math.min(1800, spherical.radius + e.deltaY * 0.5));
+  camera.position.setFromSpherical(spherical);
+  camera.lookAt(0, 0, 0);
+}, { passive: false });
+
+document.getElementById('back').addEventListener('click', e => {
+  e.preventDefault();
+  overlay.style.transition = 'opacity 0.35s ease';
+  overlay.style.opacity = '1';
+  const href = e.currentTarget.href;
+  setTimeout(() => { window.location.href = href; }, 380);
+});
+
+let zoomState = null;
+
+// ── Animate ────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+(function tick() {
+  requestAnimationFrame(tick);
+  const dt = clock.getDelta();
+  const now = performance.now();
+
+  if (entering) {
+    const t = Math.min((now - ENTER_T0) / ENTER_DUR, 1);
+    const ease = 1 - (1 - t) ** 3;
+    camera.position.lerpVectors(CAM_FROM, CAM_REST, ease);
+    camera.lookAt(0, 0, 0);
+    if (t >= 1) { entering = false; camera.position.copy(CAM_REST); spherical.setFromVector3(CAM_REST); }
+  }
+
+  planets.forEach(p => {
+    if (!p.paused && !transitioning) p.angle += p.speed * 60 * dt;
+    p.mesh.position.copy(orbitPos(p.r, p.angle, p.incl));
+  });
+
+  if (zoomState) {
+    const { fromPos, toPos, lookAt, t0, dur } = zoomState;
+    const t = Math.min((now - t0) / dur, 1);
+    const ease = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    camera.position.lerpVectors(fromPos, toPos, ease);
+    camera.lookAt(lookAt);
+  }
+
+  renderer.render(scene, camera);
+})();
+
+// ── Resize ─────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
