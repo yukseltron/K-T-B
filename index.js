@@ -125,13 +125,32 @@ function makeRing(r, incl) {
 
 // ── Planet data ────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Ceres',   r: 130, size: 19,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5 },
-  { name: 'Sedna',   r: 175, size: 17,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52 },
-  { name: 'Arachi',  r: 223, size: 11, dur: 62,  start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a },
-  { name: 'Ishtar',  r: 275, size: 13, dur: 78,  start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a },
-  { name: 'Nemesis', r: 330, size: 10, dur: 95,  start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa },
-  { name: 'Bacchus', r: 420, size: 22, dur: 130, start: 330, incl:  -5, href: 'planets/bacchus/', color: 0x4a6e9e },
+  { name: 'Ceres',   r: 130, size: 19,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5,
+    poems: ['planets/ceres/poems/cabin.html','planets/ceres/poems/forgetting.html','planets/ceres/poems/lmtst.html','planets/ceres/poems/under-the-glow.html','planets/ceres/poems/reaching.html','planets/ceres/poems/missing.html','planets/ceres/poems/ablution.html','planets/ceres/poems/autumn.html','planets/ceres/poems/immortal-cat.html','planets/ceres/poems/return.html','planets/ceres/poems/pseudepigrapha.html','planets/ceres/poems/esoteric-plane.html'] },
+  { name: 'Sedna',   r: 175, size: 17,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52,
+    poems: ['planets/sedna/poems/the-tree.html','planets/sedna/poems/the-ship.html','planets/sedna/poems/the-artefact.html','planets/sedna/poems/the-entrance.html','planets/sedna/poems/the-massif.html','planets/sedna/poems/the-missing.html','planets/sedna/poems/the-well.html','planets/sedna/poems/the-visitors.html','planets/sedna/poems/the-jailed-man.html','planets/sedna/poems/the-moon-king.html','planets/sedna/poems/my-brazen-friend.html','planets/sedna/poems/binary-paradox.html'] },
+  { name: 'Arachi',  r: 223, size: 11,  dur: 62,  start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a,
+    poems: ['planets/arachi/poems/arrival.html','planets/arachi/poems/timeless.html','planets/arachi/poems/meal.html','planets/arachi/poems/maw.html','planets/arachi/poems/fang.html','planets/arachi/poems/cured.html','planets/arachi/poems/diaspora.html','planets/arachi/poems/cacophony.html','planets/arachi/poems/filth.html','planets/arachi/poems/volition.html','planets/arachi/poems/jagged.html','planets/arachi/poems/killer.html'] },
+  { name: 'Ishtar',  r: 275, size: 13,  dur: 78,  start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a,
+    poems: ['planets/ishtar/poems/together.html','planets/ishtar/poems/beat.html','planets/ishtar/poems/42.html','planets/ishtar/poems/long-hairs-and-fingers.html'] },
+  { name: 'Nemesis', r: 330, size: 10,  dur: 95,  start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa,
+    poems: ['planets/nemesis/poems/rvng-pt1.html','planets/nemesis/poems/rvng-pt2.html','planets/nemesis/poems/rvng-pt3.html'] },
+  { name: 'Bacchus', r: 420, size: 22,  dur: 130, start: 330, incl:  -5, href: 'planets/bacchus/', color: 0x4a6e9e,
+    poems: ['planets/bacchus/poems/cat.html','planets/bacchus/poems/a4-30.html','planets/bacchus/poems/yttz.html','planets/bacchus/poems/m3ss.html','planets/bacchus/poems/dr1p.html','planets/bacchus/poems/new-b-world.html'] },
 ];
+
+// ── Visited tracking ───────────────────────────────────────────────────────
+const VISITED_KEY = 'ktb_visited';
+function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_KEY) || '[]')); }
+function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
+function addVisitedRing(mesh, size, color) {
+  const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
+  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
+  ring.rotation.x = -Math.PI / 2 + 0.3;
+  mesh.add(ring);
+}
+const visited = getVisited();
 
 const planets = [], meshes = [];
 
@@ -144,6 +163,7 @@ DATA.forEach(d => {
   const angle = d.start * D2R;
   mesh.position.copy(orbitPos(d.r, angle, d.incl));
   scene.add(mesh);
+  if (d.poems.every(href => visited.has(href))) addVisitedRing(mesh, d.size, d.color);
   const p = { ...d, mesh, angle, speed: (Math.PI * 2) / (d.dur * 60), paused: false };
   mesh.userData = p;
   planets.push(p);
@@ -217,6 +237,7 @@ renderer.domElement.addEventListener('mouseup', () => {
   overlay.style.transition = 'opacity 0.45s ease 0.25s';
   overlay.style.opacity = '1';
   zoomState = { fromPos, toPos, fromLook: new THREE.Vector3(), toLook: p.mesh.position.clone(), t0: performance.now(), dur: 1000 };
+  markVisited(p.href);
   setTimeout(() => { window.location.href = p.href; }, 1060);
 });
 
@@ -283,6 +304,7 @@ renderer.domElement.addEventListener('wheel', e => {
         overlay.style.transition = 'opacity 0.45s ease 0.25s';
         overlay.style.opacity = '1';
         zoomState = { fromPos, toPos, fromLook: new THREE.Vector3(), toLook: p.mesh.position.clone(), t0: performance.now(), dur: 1000 };
+        markVisited(p.href);
         setTimeout(() => { window.location.href = p.href; }, 1060);
       }
     }

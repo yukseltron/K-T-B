@@ -113,6 +113,20 @@ const DATA = [
   { name: 'New B. World', r: 445, size: 20, dur: 138, start: 300, incl:  -8, href: 'poems/new-b-world.html',  color: 0x638ab8 },
 ];
 
+// ── Visited tracking ───────────────────────────────────────────────────────
+const VISITED_KEY = 'ktb_visited';
+const MY_PATH = 'planets/bacchus/';
+function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_KEY) || '[]')); }
+function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
+function addVisitedRing(mesh, size, color) {
+  const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
+  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
+  ring.rotation.x = -Math.PI / 2 + 0.3;
+  mesh.add(ring);
+}
+const visited = getVisited();
+
 const planets = [], meshes = [];
 
 DATA.forEach(d => {
@@ -124,6 +138,7 @@ DATA.forEach(d => {
   const angle = d.start * D2R;
   mesh.position.copy(orbitPos(d.r, angle, d.incl));
   scene.add(mesh);
+  if (visited.has(MY_PATH + d.href)) addVisitedRing(mesh, d.size, d.color);
   const p = { ...d, mesh, angle, speed: (Math.PI * 2) / (d.dur * 60), paused: false };
   mesh.userData = p;
   planets.push(p);
@@ -197,6 +212,7 @@ renderer.domElement.addEventListener('mouseup', () => {
   overlay.style.transition = 'opacity 0.45s ease 0.25s';
   overlay.style.opacity = '1';
   zoomState = { fromPos, toPos, fromLook: new THREE.Vector3(), toLook: p.mesh.position.clone(), t0: performance.now(), dur: 1000 };
+  markVisited(MY_PATH + p.href);
   setTimeout(() => { window.location.href = p.href; }, 1060);
 });
 
@@ -263,6 +279,7 @@ renderer.domElement.addEventListener('wheel', e => {
         overlay.style.transition = 'opacity 0.45s ease 0.25s';
         overlay.style.opacity = '1';
         zoomState = { fromPos, toPos, fromLook: new THREE.Vector3(), toLook: p.mesh.position.clone(), t0: performance.now(), dur: 1000 };
+        markVisited(MY_PATH + p.href);
         setTimeout(() => { window.location.href = p.href; }, 1060);
       }
     }
