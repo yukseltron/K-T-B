@@ -28,3 +28,10 @@
       position: fixed; inset: 0; background: #0d0d0d;
       opacity: 0; pointer-events: none; z-index: 100;
     }
+    .personal-link {
+      position: fixed; bottom: 30px; right: 35px;
+      font: normal 11px/1 Georgia, serif;
+      letter-spacing: 0.2em; text-transform: lowercase;
+      color: rgba(200,200,200,0.4); text-decoration: none; z-index: 20;
+    }
+    .personal-link:hover { color: rgba(200,200,200,0.9); }

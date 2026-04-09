@@ -34,13 +34,13 @@ scene.add(dirLight);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   scene.add(new THREE.Points(g, new THREE.PointsMaterial({
-    color: 0xffffff, size: 1.5, transparent: true, opacity: 0.35
+    color: 0xffffff, size: 2.5, transparent: true, opacity: 0.25
   })));
 }
 
 // ── Black sun ──────────────────────────────────────────────────────────────
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(70, 32, 32),
+  new THREE.SphereGeometry(100, 32, 32),
   new THREE.MeshBasicMaterial({ color: 0x06040e })
 ));
 
@@ -66,7 +66,7 @@ scene.add(new THREE.Mesh(
     depthWrite: false,
   });
   const glow = new THREE.Sprite(glowMat);
-  glow.scale.set(520, 520, 1);
+  glow.scale.set(280, 280, 1);
   scene.add(glow);
 }
 
@@ -125,8 +125,8 @@ function makeRing(r, incl) {
 
 // ── Planet data ────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Ceres',   r: 130, size: 9,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5 },
-  { name: 'Sedna',   r: 175, size: 7,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52 },
+  { name: 'Ceres',   r: 130, size: 19,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5 },
+  { name: 'Sedna',   r: 175, size: 17,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52 },
   { name: 'Arachi',  r: 223, size: 11, dur: 62,  start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a },
   { name: 'Ishtar',  r: 275, size: 13, dur: 78,  start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a },
   { name: 'Nemesis', r: 330, size: 10, dur: 95,  start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa },
@@ -139,7 +139,7 @@ DATA.forEach(d => {
   scene.add(makeRing(d.r, d.incl));
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(d.size, 24, 24),
-    new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(d.color), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+    new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(d.color), roughness: 0.25, metalness: 0.1, clearcoat: 0.4, clearcoatRoughness: 0.08 })
   );
   const angle = d.start * D2R;
   mesh.position.copy(orbitPos(d.r, angle, d.incl));
