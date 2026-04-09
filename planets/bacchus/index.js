@@ -207,6 +207,69 @@ renderer.domElement.addEventListener('wheel', e => {
   camera.lookAt(0, 0, 0);
 }, { passive: false });
 
+// ── Touch support ──────────────────────────────────────────────────────────
+{
+  let tPrevX = 0, tPrevY = 0, tDownX = 0, tDownY = 0, tDrag = false, pinch0 = null;
+
+  renderer.domElement.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      tDownX = tPrevX = t.clientX; tDownY = tPrevY = t.clientY;
+      tDrag = false; pinch0 = null;
+    } else if (e.touches.length === 2) {
+      pinch0 = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  renderer.domElement.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && pinch0 === null) {
+      const t = e.touches[0];
+      const dx = t.clientX - tPrevX, dy = t.clientY - tPrevY;
+      tPrevX = t.clientX; tPrevY = t.clientY;
+      if (Math.hypot(t.clientX - tDownX, t.clientY - tDownY) > 8) tDrag = true;
+      if (tDrag && !transitioning && !entering) {
+        spherical.theta -= dx * 0.005;
+        spherical.phi = Math.max(0.05, Math.min(Math.PI * 0.88, spherical.phi - dy * 0.005));
+        camera.position.setFromSpherical(spherical);
+        camera.lookAt(0, 0, 0);
+      }
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+      if (pinch0 !== null) {
+        spherical.radius = Math.max(150, Math.min(1800, spherical.radius + (pinch0 - dist) * 2));
+        camera.position.setFromSpherical(spherical);
+        camera.lookAt(0, 0, 0);
+      }
+      pinch0 = dist; tDrag = true;
+    }
+  }, { passive: false });
+
+  renderer.domElement.addEventListener('touchend', e => {
+    e.preventDefault();
+    if (!tDrag && e.changedTouches.length === 1) {
+      const t = e.changedTouches[0];
+      mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
+      rc.setFromCamera(mouse, camera);
+      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      if (hit && !transitioning && !entering) {
+        const p = hit;
+        transitioning = true;
+        document.getElementById('label').style.opacity = '0';
+        const fromPos = camera.position.clone();
+        const dir = fromPos.clone().sub(p.mesh.position).normalize();
+        const toPos = p.mesh.position.clone().add(dir.multiplyScalar(p.size * 4));
+        overlay.style.transition = 'opacity 0.45s ease 0.25s';
+        overlay.style.opacity = '1';
+        zoomState = { fromPos, toPos, fromLook: new THREE.Vector3(), toLook: p.mesh.position.clone(), t0: performance.now(), dur: 1000 };
+        setTimeout(() => { window.location.href = p.href; }, 1060);
+      }
+    }
+    tDrag = false; pinch0 = null;
+  }, { passive: false });
+}
+
 document.getElementById('back').addEventListener('click', e => {
   e.preventDefault();
   if (exiting || transitioning) return;
