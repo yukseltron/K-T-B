@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>K - T - B</title>
+  <title>Ishtar</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; background: #0d0d0d; overflow: hidden; }
@@ -12,13 +12,8 @@
     #label {
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      font: normal 20px/1 Georgia, serif;
-      letter-spacing: 0.15em;
-      background: linear-gradient(180deg, #ffffff 0%, #c8c8d8 40%, #ffffff 65%, #9090aa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      filter: drop-shadow(0 0 6px rgba(200,200,255,0.7)) drop-shadow(0 0 14px rgba(180,180,255,0.35));
+      font: normal 10px/1 Georgia, serif;
+      letter-spacing: 0.18em; color: #1a1a1a;
       pointer-events: none; user-select: none; z-index: 5;
       transition: opacity 0.25s;
     }
@@ -35,11 +30,19 @@
       position: fixed; inset: 0; background: #0d0d0d;
       opacity: 0; pointer-events: none; z-index: 100;
     }
+    .back {
+      position: fixed; top: 30px; left: 35px;
+      font: normal 11px/1 Georgia, serif;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(200,200,200,0.4); text-decoration: none; z-index: 20;
+    }
+    .back:hover { color: rgba(200,200,200,0.85); }
   </style>
 </head>
 <body>
 
-<div id="label">K - T - B</div>
+<a class="back" id="back" href="../../">&#8592; K - T - B</a>
+<div id="label">Ishtar</div>
 <div id="tooltip"></div>
 <div id="overlay"></div>
 
@@ -67,19 +70,25 @@ document.body.appendChild(renderer.domElement);
 // ── Scene / Camera ─────────────────────────────────────────────────────────
 const scene = new THREE.Scene();
 
-// ── Environment map (for glossy reflections) ───────────────────────────────
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 pmrem.dispose();
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 1, 8000);
-camera.position.set(0, 300, 700);
+
+const CAM_FROM = new THREE.Vector3(0, 3000, 7000);
+const CAM_REST = new THREE.Vector3(0, 300, 700);
+camera.position.copy(CAM_FROM);
 camera.lookAt(0, 0, 0);
 
+let entering = true;
+const ENTER_T0  = performance.now();
+const ENTER_DUR = 1300;
+
 // ── Lighting ───────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xc8c8d8, 0.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-dirLight.position.set(200, 500, 300);
-scene.add(dirLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.position.set(200, 500, 300);
+scene.add(sun);
 
 // ── Stars ──────────────────────────────────────────────────────────────────
 {
@@ -92,18 +101,10 @@ scene.add(dirLight);
   })));
 }
 
-// ── Black sun ──────────────────────────────────────────────────────────────
+// ── Center sphere (Ishtar) ─────────────────────────────────────────────────
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(70, 32, 32),
-  new THREE.MeshBasicMaterial({ color: 0x06040e })
-));
-scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(88, 32, 32),
-  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, side: THREE.BackSide })
-));
-scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(116, 32, 32),
-  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07, side: THREE.BackSide })
+  new THREE.SphereGeometry(54, 32, 32),
+  new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(0xb59a5a), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
 ));
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -159,14 +160,12 @@ function makeRing(r, incl) {
   );
 }
 
-// ── Planet data ────────────────────────────────────────────────────────────
+// ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Ceres',   r: 130, size: 9,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5 },
-  { name: 'Sedna',   r: 175, size: 7,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52 },
-  { name: 'Arachi',  r: 223, size: 11, dur: 62,  start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a },
-  { name: 'Ishtar',  r: 275, size: 13, dur: 78,  start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a },
-  { name: 'Nemesis', r: 330, size: 10, dur: 95,  start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa },
-  { name: 'Bacchus', r: 420, size: 22, dur: 130, start: 330, incl:  -5, href: 'planets/bacchus/', color: 0x4a6e9e },
+  { name: 'Together',              r: 110, size: 10, dur:  28, start:   0, incl:  14, href: 'poems/together.html',              color: 0xb59a5a },
+  { name: 'Beat',                  r: 200, size:  9, dur:  54, start:  90, incl: -18, href: 'poems/beat.html',                  color: 0xa08840 },
+  { name: '42',                    r: 305, size: 11, dur:  88, start: 180, incl:  10, href: 'poems/42.html',                    color: 0xc8aa65 },
+  { name: 'Long Hairs and Fingers',r: 425, size: 16, dur: 132, start: 270, incl: -15, href: 'poems/long-hairs-and-fingers.html',color: 0x987535 },
 ];
 
 const planets = [], meshes = [];
@@ -186,15 +185,15 @@ DATA.forEach(d => {
   meshes.push(mesh);
 });
 
-// ── Camera spherical coords (for rotation) ────────────────────────────────
-const spherical = new THREE.Spherical().setFromVector3(camera.position);
+// ── Camera spherical coords ────────────────────────────────────────────────
+const spherical = new THREE.Spherical().setFromVector3(CAM_REST);
 
 // ── Interaction ────────────────────────────────────────────────────────────
 const rc    = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const tooltip = document.getElementById('tooltip');
 const overlay = document.getElementById('overlay');
-let hovered = null, transitioning = false;
+let hovered = null, transitioning = false, exiting = false;
 let isDown = false, isDrag = false;
 let downX = 0, downY = 0, prevX = 0, prevY = 0;
 
@@ -205,7 +204,7 @@ renderer.domElement.addEventListener('mousemove', e => {
 
   if (isDown) {
     if (Math.hypot(e.clientX - downX, e.clientY - downY) > 4) isDrag = true;
-    if (isDrag && !transitioning) {
+    if (isDrag && !transitioning && !entering) {
       spherical.theta -= dx * 0.005;
       spherical.phi = Math.max(0.05, Math.min(Math.PI * 0.88, spherical.phi - dy * 0.005));
       camera.position.setFromSpherical(spherical);
@@ -240,7 +239,7 @@ renderer.domElement.addEventListener('mouseup', () => {
   const dragged = isDrag;
   isDown = false; isDrag = false;
   renderer.domElement.style.cursor = hovered ? 'pointer' : 'default';
-  if (dragged || transitioning || !hovered) return;
+  if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
   transitioning = true;
@@ -263,7 +262,20 @@ renderer.domElement.addEventListener('wheel', e => {
   camera.lookAt(0, 0, 0);
 }, { passive: false });
 
+document.getElementById('back').addEventListener('click', e => {
+  e.preventDefault();
+  if (exiting || transitioning) return;
+  exiting = true;
+  entering = false;
+  const href = e.currentTarget.href;
+  exitState = { from: camera.position.clone(), to: CAM_FROM.clone(), t0: performance.now(), dur: 900 };
+  overlay.style.transition = 'opacity 0.45s ease 0.6s';
+  overlay.style.opacity = '1';
+  setTimeout(() => { window.location.href = href; }, 1100);
+});
+
 let zoomState = null;
+let exitState = null;
 
 // ── Animate ────────────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
@@ -271,6 +283,22 @@ const clock = new THREE.Clock();
 (function tick() {
   requestAnimationFrame(tick);
   const dt = clock.getDelta();
+  const now = performance.now();
+
+  if (entering) {
+    const t = Math.min((now - ENTER_T0) / ENTER_DUR, 1);
+    const ease = 1 - (1 - t) ** 3;
+    camera.position.lerpVectors(CAM_FROM, CAM_REST, ease);
+    camera.lookAt(0, 0, 0);
+    if (t >= 1) { entering = false; camera.position.copy(CAM_REST); spherical.setFromVector3(CAM_REST); }
+  }
+
+  if (exiting && exitState) {
+    const { from, to, t0, dur } = exitState;
+    const t = Math.min((performance.now() - t0) / dur, 1);
+    camera.position.lerpVectors(from, to, t * t * t);
+    camera.lookAt(0, 0, 0);
+  }
 
   planets.forEach(p => {
     if (!p.paused && !transitioning) p.angle += p.speed * 60 * dt;
@@ -279,7 +307,7 @@ const clock = new THREE.Clock();
 
   if (zoomState) {
     const { fromPos, toPos, fromLook, toLook, t0, dur } = zoomState;
-    const t = Math.min((performance.now() - t0) / dur, 1);
+    const t = Math.min((now - t0) / dur, 1);
     const ease = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
     camera.position.lerpVectors(fromPos, toPos, ease);
     camera.lookAt(new THREE.Vector3().lerpVectors(fromLook, toLook, ease));
