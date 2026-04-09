@@ -47,7 +47,7 @@ scene.add(sun);
 // ── Center sphere (Bacchus) ────────────────────────────────────────────────
 scene.add(new THREE.Mesh(
   new THREE.SphereGeometry(58, 32, 32),
-  new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(0x4a6e9e), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+  new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(0x4a6e9e), roughness: 0.88, metalness: 0.0, clearcoat: 0.0 })
 ));
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -56,23 +56,28 @@ const D2R = Math.PI / 180;
 function makePlanetTexture(hex) {
   const size = 512;
   const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
+  canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d');
   const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
-  const hi = (c, d) => Math.min(255, c + d), lo = (c, d) => Math.max(0, c - d);
-  const grad = ctx.createLinearGradient(0, 0, size * 0.6, size);
-  grad.addColorStop(0,   `rgb(${hi(r,55)},${hi(g,55)},${hi(b,55)})`);
-  grad.addColorStop(0.5, `rgb(${r},${g},${b})`);
-  grad.addColorStop(1,   `rgb(${lo(r,50)},${lo(g,50)},${lo(b,50)})`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
   const img = ctx.getImageData(0, 0, size, size);
   const px = img.data;
-  for (let i = 0; i < px.length; i += 4) {
-    const n = (Math.random() - 0.5) * 38;
-    px[i]   = Math.min(255, Math.max(0, px[i]   + n));
-    px[i+1] = Math.min(255, Math.max(0, px[i+1] + n));
-    px[i+2] = Math.min(255, Math.max(0, px[i+2] + n));
+  const TAU = Math.PI * 2;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const u = x / size;
+      const v = y / size;
+      const n =
+        Math.sin(u * TAU * 2 + 1.3) * Math.cos(v * TAU * 1.5 + 0.7) * 32 +
+        Math.sin(u * TAU * 4 + 2.1) * Math.cos(v * TAU * 3.5 + 1.4) * 20 +
+        Math.sin(u * TAU * 1 + 0.5) * Math.cos(v * TAU * 2.5 + 2.2) * 25 +
+        (Math.random() - 0.5) * 28;
+      const pole = (1 - Math.abs(v - 0.5) * 2) * 18 - 9;
+      px[i]   = Math.min(255, Math.max(0, r + n + pole));
+      px[i+1] = Math.min(255, Math.max(0, g + n + pole));
+      px[i+2] = Math.min(255, Math.max(0, b + n + pole));
+      px[i+3] = 255;
+    }
   }
   ctx.putImageData(img, 0, 0);
   return new THREE.CanvasTexture(canvas);
@@ -130,7 +135,7 @@ DATA.forEach(d => {
   scene.add(makeRing(d.r, d.incl));
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(d.size, 24, 24),
-    new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(d.color), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+    new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(d.color), roughness: 0.88, metalness: 0.0, clearcoat: 0.0 })
   );
   const angle = d.start * D2R;
   mesh.position.copy(orbitPos(d.r, angle, d.incl));
