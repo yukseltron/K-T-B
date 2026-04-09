@@ -105,9 +105,14 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'RVNG pt.1', r: 120, size: 13, dur: 30, start:   0, incl:  14, href: 'poems/rvng-pt1.html', color: 0x7e6aaa },
-  { name: 'RVNG pt.2', r: 240, size: 12, dur: 65, start: 120, incl: -20, href: 'poems/rvng-pt2.html', color: 0x6a5890 },
-  { name: 'RVNG pt.3', r: 380, size: 14, dur: 112, start: 240, incl:  10, href: 'poems/rvng-pt3.html', color: 0x9278be },
+  { name: 'RVNG pt.1',      r:  85, size: 13, dur:  21, start:   0, incl:  14, href: 'poems/rvng-pt1.html',       color: 0x7e6aaa },
+  { name: 'Cabin',          r: 130, size:  9, dur:  37, start:  45, incl: -12, href: 'poems/cabin.html',          color: 0x6a8faa },
+  { name: 'RVNG pt.2',      r: 178, size: 12, dur:  55, start:  90, incl: -20, href: 'poems/rvng-pt2.html',       color: 0x6a5890 },
+  { name: 'The Visitors',   r: 228, size:  9, dur:  79, start: 135, incl:   8, href: 'poems/the-visitors.html',   color: 0x985040 },
+  { name: 'A4-30',          r: 280, size:  9, dur: 106, start: 180, incl: -18, href: 'poems/a4-30.html',          color: 0x3d5e8a },
+  { name: 'The Jailed Man', r: 335, size: 11, dur: 138, start: 225, incl:  14, href: 'poems/the-jailed-man.html', color: 0xb26050 },
+  { name: 'YTTZ',           r: 393, size: 11, dur: 174, start: 270, incl: -10, href: 'poems/yttz.html',           color: 0x5a7fae },
+  { name: 'RVNG pt.3',      r: 455, size: 14, dur: 218, start: 315, incl:  10, href: 'poems/rvng-pt3.html',       color: 0x9278be },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -117,7 +122,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -169,16 +174,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning && !entering) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -199,6 +207,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -265,7 +276,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning && !entering) {
         const p = hit;
         transitioning = true;

@@ -105,10 +105,12 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Together',              r: 110, size: 10, dur:  28, start:   0, incl:  14, href: 'poems/together.html',              color: 0xb59a5a },
-  { name: 'Beat',                  r: 200, size:  9, dur:  54, start:  90, incl: -18, href: 'poems/beat.html',                  color: 0xa08840 },
-  { name: '42',                    r: 305, size: 11, dur:  88, start: 180, incl:  10, href: 'poems/42.html',                    color: 0xc8aa65 },
-  { name: 'Long Hairs and Fingers',r: 425, size: 16, dur: 132, start: 270, incl: -15, href: 'poems/long-hairs-and-fingers.html',color: 0x987535 },
+  { name: 'Together',               r: 100, size: 10, dur:  26, start:   0, incl:  14, href: 'poems/together.html',               color: 0xb59a5a },
+  { name: 'Beat',                   r: 165, size:  9, dur:  48, start:  60, incl: -18, href: 'poems/beat.html',                   color: 0xa08840 },
+  { name: 'Ablution',               r: 230, size: 12, dur:  74, start: 120, incl:  12, href: 'poems/ablution.html',               color: 0x82a8be },
+  { name: '42',                     r: 310, size: 11, dur: 110, start: 180, incl:  10, href: 'poems/42.html',                     color: 0xc8aa65 },
+  { name: 'The Missing',            r: 395, size:  9, dur: 152, start: 240, incl: -14, href: 'poems/the-missing.html',            color: 0xaa6448 },
+  { name: 'Long Hairs and Fingers', r: 490, size: 16, dur: 204, start: 300, incl: -15, href: 'poems/long-hairs-and-fingers.html', color: 0x987535 },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -118,7 +120,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -170,16 +172,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning && !entering) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -200,6 +205,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -266,7 +274,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning && !entering) {
         const p = hit;
         transitioning = true;

@@ -1,0 +1,81 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #0d0d0d;
+  color: #c0c0c0;
+  font-family: 'Georgia', serif;
+}
+
+body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 80px 40px 120px;
+}
+
+main {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 13px;
+  font-weight: normal;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200, 200, 200, 0.5);
+  margin-bottom: 60px;
+}
+
+p {
+  font-size: 15px;
+  line-height: 1.85;
+  color: #b8b8b8;
+  margin-bottom: 2em;
+}
+
+p.verse {
+  white-space: pre-line;
+}
+
+blockquote {
+  margin: 2em 0 2em 1.5em;
+  border-left: 1px solid rgba(200,200,200,0.2);
+  padding-left: 1.5em;
+  font-style: italic;
+  color: #a0a0a0;
+}
+
+blockquote p {
+  white-space: pre-line;
+}
+
+.spacer {
+  height: 8em;
+}
+
+.aside {
+  font-size: 13px;
+  color: rgba(180,180,180,0.5);
+  font-style: italic;
+  line-height: 1.75;
+  margin-bottom: 2em;
+}
+
+.back {
+  position: fixed;
+  top: 30px;
+  left: 35px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(200, 200, 200, 0.4);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.back:hover {
+  color: rgba(200, 200, 200, 0.8);
+}

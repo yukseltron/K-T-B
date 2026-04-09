@@ -125,18 +125,20 @@ function makeRing(r, incl) {
 
 // ── Planet data ────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Ceres',   r: 130, size: 19,  dur: 35,  start: 45,  incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5,
-    poems: ['planets/ceres/poems/cabin.html','planets/ceres/poems/forgetting.html','planets/ceres/poems/lmtst.html','planets/ceres/poems/under-the-glow.html','planets/ceres/poems/reaching.html','planets/ceres/poems/missing.html','planets/ceres/poems/ablution.html','planets/ceres/poems/autumn.html','planets/ceres/poems/immortal-cat.html','planets/ceres/poems/return.html','planets/ceres/poems/pseudepigrapha.html','planets/ceres/poems/esoteric-plane.html'] },
-  { name: 'Sedna',   r: 175, size: 17,  dur: 48,  start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52,
-    poems: ['planets/sedna/poems/the-tree.html','planets/sedna/poems/the-ship.html','planets/sedna/poems/the-artefact.html','planets/sedna/poems/the-entrance.html','planets/sedna/poems/the-massif.html','planets/sedna/poems/the-missing.html','planets/sedna/poems/the-well.html','planets/sedna/poems/the-visitors.html','planets/sedna/poems/the-jailed-man.html','planets/sedna/poems/the-moon-king.html','planets/sedna/poems/my-brazen-friend.html','planets/sedna/poems/binary-paradox.html'] },
-  { name: 'Arachi',  r: 223, size: 11,  dur: 62,  start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a,
-    poems: ['planets/arachi/poems/arrival.html','planets/arachi/poems/timeless.html','planets/arachi/poems/meal.html','planets/arachi/poems/maw.html','planets/arachi/poems/fang.html','planets/arachi/poems/cured.html','planets/arachi/poems/diaspora.html','planets/arachi/poems/cacophony.html','planets/arachi/poems/filth.html','planets/arachi/poems/volition.html','planets/arachi/poems/jagged.html','planets/arachi/poems/killer.html'] },
-  { name: 'Ishtar',  r: 275, size: 13,  dur: 78,  start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a,
-    poems: ['planets/ishtar/poems/together.html','planets/ishtar/poems/beat.html','planets/ishtar/poems/42.html','planets/ishtar/poems/long-hairs-and-fingers.html'] },
-  { name: 'Nemesis', r: 330, size: 10,  dur: 95,  start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa,
-    poems: ['planets/nemesis/poems/rvng-pt1.html','planets/nemesis/poems/rvng-pt2.html','planets/nemesis/poems/rvng-pt3.html'] },
-  { name: 'Bacchus', r: 420, size: 22,  dur: 130, start: 330, incl:  -5, href: 'planets/bacchus/', color: 0x4a6e9e,
-    poems: ['planets/bacchus/poems/cat.html','planets/bacchus/poems/a4-30.html','planets/bacchus/poems/yttz.html','planets/bacchus/poems/m3ss.html','planets/bacchus/poems/dr1p.html','planets/bacchus/poems/new-b-world.html'] },
+  { name: 'Ceres',   r: 130, size: 19, dur:  35, start:  45, incl:  15, href: 'planets/ceres/',   color: 0x7a9fb5,
+    poems: ['planets/ceres/poems/forgetting.html','planets/ceres/poems/lmtst.html','planets/ceres/poems/under-the-glow.html','planets/ceres/poems/missing.html','planets/ceres/poems/esoteric-plane.html','planets/ceres/poems/new-b-world.html'] },
+  { name: 'Sedna',   r: 185, size: 17, dur:  52, start: 100, incl: -20, href: 'planets/sedna/',   color: 0xb56e52,
+    poems: ['planets/sedna/poems/the-ship.html','planets/sedna/poems/the-artefact.html','planets/sedna/poems/the-entrance.html','planets/sedna/poems/the-massif.html','planets/sedna/poems/the-well.html','planets/sedna/poems/the-moon-king.html','planets/sedna/poems/my-brazen-friend.html','planets/sedna/poems/binary-paradox.html','planets/sedna/poems/immortal-cat.html','planets/sedna/poems/maw.html','planets/sedna/poems/m3ss.html'] },
+  { name: 'Arachi',  r: 243, size: 11, dur:  68, start: 160, incl:   8, href: 'planets/arachi/',  color: 0x5e9e8a,
+    poems: ['planets/arachi/poems/arrival.html','planets/arachi/poems/timeless.html','planets/arachi/poems/meal.html','planets/arachi/poems/return.html','planets/arachi/poems/diaspora.html','planets/arachi/poems/reaching.html','planets/arachi/poems/pseudepigrapha.html','planets/arachi/poems/the-tree.html'] },
+  { name: 'Ishtar',  r: 300, size: 13, dur:  85, start: 230, incl: -12, href: 'planets/ishtar/',  color: 0xb59a5a,
+    poems: ['planets/ishtar/poems/together.html','planets/ishtar/poems/beat.html','planets/ishtar/poems/ablution.html','planets/ishtar/poems/42.html','planets/ishtar/poems/the-missing.html','planets/ishtar/poems/long-hairs-and-fingers.html'] },
+  { name: 'Nemesis', r: 357, size: 10, dur: 103, start: 295, incl:  25, href: 'planets/nemesis/', color: 0x7e6aaa,
+    poems: ['planets/nemesis/poems/rvng-pt1.html','planets/nemesis/poems/cabin.html','planets/nemesis/poems/rvng-pt2.html','planets/nemesis/poems/the-visitors.html','planets/nemesis/poems/a4-30.html','planets/nemesis/poems/the-jailed-man.html','planets/nemesis/poems/yttz.html','planets/nemesis/poems/rvng-pt3.html'] },
+  { name: 'Keres',   r: 418, size: 14, dur: 130, start:  20, incl: -10, href: 'planets/keres/',   color: 0x7a3030,
+    poems: ['planets/keres/poems/cacophony.html','planets/keres/poems/cured.html','planets/keres/poems/volition.html','planets/keres/poems/fang.html','planets/keres/poems/killer.html','planets/keres/poems/filth.html','planets/keres/poems/jagged.html'] },
+  { name: 'Bacchus', r: 490, size: 22, dur: 163, start: 330, incl:  -5, href: 'planets/bacchus/', color: 0x4a6e9e,
+    poems: ['planets/bacchus/poems/cat.html','planets/bacchus/poems/autumn.html','planets/bacchus/poems/dr1p.html'] },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -145,7 +147,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -197,16 +199,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -227,6 +232,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -293,7 +301,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning) {
         const p = hit;
         transitioning = true;

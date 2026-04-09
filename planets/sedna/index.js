@@ -105,18 +105,17 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'The Tree',         r:  90, size:  9, dur:  22, start:  15, incl:  10, href: 'poems/the-tree.html',         color: 0xb56e52 },
-  { name: 'The Ship',         r: 118, size:  8, dur:  30, start:  45, incl: -18, href: 'poems/the-ship.html',         color: 0xa05f45 },
-  { name: 'The Artefact',     r: 148, size: 10, dur:  38, start:  75, incl:  14, href: 'poems/the-artefact.html',     color: 0xc07a5a },
-  { name: 'The Entrance',     r: 178, size:  9, dur:  47, start: 105, incl: -22, href: 'poems/the-entrance.html',     color: 0x9e5535 },
-  { name: 'The Massif',       r: 208, size:  8, dur:  57, start: 135, incl:  18, href: 'poems/the-massif.html',       color: 0xb87060 },
-  { name: 'The Missing',      r: 238, size:  9, dur:  67, start: 165, incl: -10, href: 'poems/the-missing.html',      color: 0xaa6448 },
-  { name: 'The Well',         r: 268, size: 12, dur:  78, start: 195, incl:  20, href: 'poems/the-well.html',         color: 0xbe8060 },
-  { name: 'The Visitors',     r: 298, size:  9, dur:  90, start: 225, incl:  -8, href: 'poems/the-visitors.html',     color: 0x985040 },
-  { name: 'The Jailed Man',   r: 330, size: 11, dur: 103, start: 255, incl:  14, href: 'poems/the-jailed-man.html',   color: 0xb26050 },
-  { name: 'The Moon King',    r: 362, size:  8, dur: 117, start: 285, incl: -25, href: 'poems/the-moon-king.html',    color: 0xc88868 },
-  { name: 'My Brazen Friend', r: 398, size: 18, dur: 132, start: 315, incl:  10, href: 'poems/my-brazen-friend.html', color: 0xa05848 },
-  { name: 'Binary Paradox',   r: 440, size: 12, dur: 148, start: 345, incl: -16, href: 'poems/binary-paradox.html',   color: 0xba7055 },
+  { name: 'The Ship',         r:  85, size:  8, dur:  21, start:   0, incl: -18, href: 'poems/the-ship.html',         color: 0xa05f45 },
+  { name: 'The Artefact',     r: 120, size: 10, dur:  32, start:  33, incl:  14, href: 'poems/the-artefact.html',     color: 0xc07a5a },
+  { name: 'The Entrance',     r: 155, size:  9, dur:  44, start:  65, incl: -22, href: 'poems/the-entrance.html',     color: 0x9e5535 },
+  { name: 'The Massif',       r: 195, size:  8, dur:  60, start:  98, incl:  18, href: 'poems/the-massif.html',       color: 0xb87060 },
+  { name: 'The Well',         r: 235, size: 12, dur:  78, start: 131, incl:  20, href: 'poems/the-well.html',         color: 0xbe8060 },
+  { name: 'The Moon King',    r: 275, size:  8, dur:  98, start: 164, incl: -25, href: 'poems/the-moon-king.html',    color: 0xc88868 },
+  { name: 'My Brazen Friend', r: 315, size: 18, dur: 120, start: 196, incl:  10, href: 'poems/my-brazen-friend.html', color: 0xa05848 },
+  { name: 'Binary Paradox',   r: 358, size: 12, dur: 145, start: 229, incl: -16, href: 'poems/binary-paradox.html',  color: 0xba7055 },
+  { name: 'The Immortal Cat', r: 402, size: 11, dur: 174, start: 262, incl:   8, href: 'poems/immortal-cat.html',    color: 0x5b8ca4 },
+  { name: 'Maw',              r: 448, size:  9, dur: 204, start: 295, incl: -22, href: 'poems/maw.html',             color: 0x9a7ab0 },
+  { name: 'M3SS',             r: 498, size:  9, dur: 239, start: 327, incl:  10, href: 'poems/m3ss.html',            color: 0x466690 },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -126,7 +125,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -178,16 +177,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning && !entering) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -208,6 +210,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -274,7 +279,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning && !entering) {
         const p = hit;
         transitioning = true;

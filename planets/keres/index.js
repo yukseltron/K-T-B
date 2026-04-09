@@ -18,6 +18,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 pmrem.dispose();
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 1, 8000);
 
+// Start far away — entrance animation zooms in to rest position
 const CAM_FROM = new THREE.Vector3(0, 3000, 7000);
 const CAM_REST = new THREE.Vector3(0, 300, 700);
 camera.position.copy(CAM_FROM);
@@ -25,7 +26,7 @@ camera.lookAt(0, 0, 0);
 
 let entering = true;
 const ENTER_T0  = performance.now();
-const ENTER_DUR = 1300;
+const ENTER_DUR = 1300; // ms
 
 // ── Lighting ───────────────────────────────────────────────────────────────
 scene.add(new THREE.AmbientLight(0xffffff, 0.55));
@@ -44,10 +45,10 @@ scene.add(sun);
   })));
 }
 
-// ── Center sphere (Bacchus) ────────────────────────────────────────────────
+// ── Center sphere (Keres) ──────────────────────────────────────────────────
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(58, 32, 32),
-  new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(0x4a6e9e), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+  new THREE.SphereGeometry(40, 32, 32),
+  new THREE.MeshPhysicalMaterial({ map: makePlanetTexture(0x7a3030), roughness: 0.25, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.08 })
 ));
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -105,14 +106,18 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'CAT',    r: 100, size: 10, dur:  27, start:   0, incl:  12, href: 'poems/cat.html',    color: 0x4a6e9e },
-  { name: 'Autumn', r: 250, size:  9, dur:  84, start: 120, incl: -15, href: 'poems/autumn.html', color: 0x94afc0 },
-  { name: 'DR1P',   r: 420, size:  8, dur: 187, start: 240, incl:  10, href: 'poems/dr1p.html',   color: 0x354f78 },
+  { name: 'Cacophony', r:  95, size:  9, dur:  24, start:   0, incl:  12, href: 'poems/cacophony.html', color: 0x7a3a3a },
+  { name: 'Cured',     r: 140, size:  8, dur:  36, start:  52, incl: -18, href: 'poems/cured.html',     color: 0x8a4040 },
+  { name: 'Volition',  r: 185, size:  9, dur:  50, start: 104, incl:  14, href: 'poems/volition.html',  color: 0x6a3050 },
+  { name: 'Fang',      r: 230, size:  9, dur:  66, start: 156, incl: -10, href: 'poems/fang.html',      color: 0x7a2828 },
+  { name: 'Killer',    r: 280, size: 11, dur:  84, start: 208, incl:  20, href: 'poems/killer.html',    color: 0x5a2a4a },
+  { name: 'Filth',     r: 340, size: 14, dur: 107, start: 260, incl:  -6, href: 'poems/filth.html',     color: 0x9a3030 },
+  { name: 'Jagged',    r: 410, size: 18, dur: 134, start: 312, incl:  16, href: 'poems/jagged.html',    color: 0x6a2030 },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
 const VISITED_KEY = 'ktb_visited';
-const MY_PATH = 'planets/bacchus/';
+const MY_PATH = 'planets/keres/';
 function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_KEY) || '[]')); }
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
@@ -142,7 +147,8 @@ DATA.forEach(d => {
   meshes.push(mesh);
 });
 
-// ── Camera spherical coords ────────────────────────────────────────────────
+// ── Camera spherical coords (for rotation) ────────────────────────────────
+// Initialised to CAM_REST — synced again once entrance finishes
 const spherical = new THREE.Spherical().setFromVector3(CAM_REST);
 
 // ── Interaction ────────────────────────────────────────────────────────────
@@ -291,6 +297,7 @@ renderer.domElement.addEventListener('wheel', e => {
   }, { passive: false });
 }
 
+// ── Back link transition ───────────────────────────────────────────────────
 document.getElementById('back').addEventListener('click', e => {
   e.preventDefault();
   if (exiting || transitioning) return;
@@ -314,9 +321,10 @@ const clock = new THREE.Clock();
   const dt = clock.getDelta();
   const now = performance.now();
 
+  // Entrance zoom
   if (entering) {
     const t = Math.min((now - ENTER_T0) / ENTER_DUR, 1);
-    const ease = 1 - (1 - t) ** 3;
+    const ease = 1 - (1 - t) ** 3; // cubic ease-out
     camera.position.lerpVectors(CAM_FROM, CAM_REST, ease);
     camera.lookAt(0, 0, 0);
     if (t >= 1) { entering = false; camera.position.copy(CAM_REST); spherical.setFromVector3(CAM_REST); }

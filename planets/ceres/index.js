@@ -105,18 +105,12 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Cabin',                              r:  90, size:  9, dur:  22, start:   0, incl:  10, href: 'poems/cabin.html',         color: 0x6a8faa },
-  { name: 'Forgetting Something You Remembered', r: 118, size:  8, dur:  30, start:  30, incl: -18, href: 'poems/forgetting.html',     color: 0x7a9db8 },
-  { name: 'LAST MIDDLE TOP SMALL TALL',         r: 148, size: 10, dur:  38, start:  60, incl:  22, href: 'poems/lmtst.html',           color: 0x5c8fa0 },
-  { name: 'Under the Glow',                     r: 178, size:  9, dur:  47, start:  90, incl:  -8, href: 'poems/under-the-glow.html',  color: 0x8aaabb },
-  { name: 'Reaching into the Past',             r: 208, size:  8, dur:  57, start: 120, incl:  15, href: 'poems/reaching.html',        color: 0x6c9eb0 },
-  { name: 'Missing the Idea of You',            r: 238, size:  9, dur:  67, start: 150, incl: -25, href: 'poems/missing.html',         color: 0x4e7d96 },
-  { name: 'Ablution',                           r: 268, size: 12, dur:  78, start: 180, incl:  12, href: 'poems/ablution.html',        color: 0x82a8be },
-  { name: 'Autumn',                             r: 298, size:  9, dur:  90, start: 210, incl:  -5, href: 'poems/autumn.html',          color: 0x94afc0 },
-  { name: 'The Immortal Cat',                   r: 330, size: 11, dur: 103, start: 240, incl:  20, href: 'poems/immortal-cat.html',    color: 0x5b8ca4 },
-  { name: 'Return',                             r: 362, size:  8, dur: 117, start: 270, incl: -14, href: 'poems/return.html',          color: 0x7097ab },
-  { name: 'Pseudepigrapha',                     r: 398, size: 18, dur: 132, start: 300, incl:   8, href: 'poems/pseudepigrapha.html',  color: 0x628fac },
-  { name: 'The Esoteric Plane',                 r: 440, size: 12, dur: 148, start: 330, incl: -18, href: 'poems/esoteric-plane.html',  color: 0x4a7a92 },
+  { name: 'Forgetting Something You Remembered', r:  90, size:  9, dur:  22, start:   0, incl: -18, href: 'poems/forgetting.html',    color: 0x7a9db8 },
+  { name: 'LAST MIDDLE TOP SMALL TALL',          r: 140, size: 10, dur:  38, start:  60, incl:  22, href: 'poems/lmtst.html',          color: 0x5c8fa0 },
+  { name: 'Under the Glow',                      r: 195, size:  9, dur:  56, start: 120, incl:  -8, href: 'poems/under-the-glow.html', color: 0x8aaabb },
+  { name: 'Missing the Idea of You',             r: 255, size:  9, dur:  80, start: 180, incl: -25, href: 'poems/missing.html',        color: 0x4e7d96 },
+  { name: 'The Esoteric Plane',                  r: 320, size: 12, dur: 108, start: 240, incl:  12, href: 'poems/esoteric-plane.html', color: 0x4a7a92 },
+  { name: 'New B. World',                        r: 400, size: 20, dur: 142, start: 300, incl:  -8, href: 'poems/new-b-world.html',    color: 0x638ab8 },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -126,7 +120,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -178,16 +172,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning && !entering) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -208,6 +205,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -274,7 +274,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning && !entering) {
         const p = hit;
         transitioning = true;

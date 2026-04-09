@@ -106,18 +106,14 @@ function makeRing(r, incl) {
 
 // ── Poem data ──────────────────────────────────────────────────────────────
 const DATA = [
-  { name: 'Arrival',   r:  90, size:  9, dur:  22, start:   0, incl:  12, href: 'poems/arrival.html',   color: 0x7a6e9a },
-  { name: 'Timeless',  r: 118, size:  8, dur:  30, start:  30, incl: -15, href: 'poems/timeless.html',  color: 0x8a7aaa },
-  { name: 'Meal',      r: 148, size: 10, dur:  38, start:  60, incl:   8, href: 'poems/meal.html',      color: 0x6a5e8a },
-  { name: 'Maw',       r: 178, size:  9, dur:  47, start:  90, incl: -22, href: 'poems/maw.html',       color: 0x9a7ab0 },
-  { name: 'Fang',      r: 208, size:  8, dur:  57, start: 120, incl:  18, href: 'poems/fang.html',      color: 0x5e5280 },
-  { name: 'Cured',     r: 238, size:  9, dur:  67, start: 150, incl: -10, href: 'poems/cured.html',     color: 0x7c6e9e },
-  { name: 'Diaspora',  r: 268, size: 12, dur:  78, start: 180, incl:  20, href: 'poems/diaspora.html',  color: 0x8870a8 },
-  { name: 'Cacophony', r: 298, size:  9, dur:  90, start: 210, incl:  -8, href: 'poems/cacophony.html', color: 0x6a5c90 },
-  { name: 'Filth',     r: 330, size: 11, dur: 103, start: 240, incl:  14, href: 'poems/filth.html',     color: 0x9480b2 },
-  { name: 'Volition',  r: 362, size:  8, dur: 117, start: 270, incl: -25, href: 'poems/volition.html',  color: 0x72649a },
-  { name: 'Jagged',    r: 398, size: 18, dur: 132, start: 300, incl:  10, href: 'poems/jagged.html',    color: 0x5a4e78 },
-  { name: 'Killer',    r: 440, size: 12, dur: 148, start: 330, incl: -16, href: 'poems/killer.html',    color: 0x866ea4 },
+  { name: 'Arrival',                r:  90, size:  9, dur:  22, start:   0, incl:  12, href: 'poems/arrival.html',        color: 0x7a6e9a },
+  { name: 'Timeless',               r: 130, size:  8, dur:  37, start:  45, incl: -15, href: 'poems/timeless.html',       color: 0x8a7aaa },
+  { name: 'Meal',                   r: 170, size: 10, dur:  55, start:  90, incl:   8, href: 'poems/meal.html',           color: 0x6a5e8a },
+  { name: 'Return',                 r: 215, size:  9, dur:  76, start: 135, incl: -18, href: 'poems/return.html',         color: 0x7097ab },
+  { name: 'Diaspora',               r: 260, size: 12, dur: 100, start: 180, incl:  20, href: 'poems/diaspora.html',       color: 0x8870a8 },
+  { name: 'Reaching into the Past', r: 310, size:  8, dur: 130, start: 225, incl: -12, href: 'poems/reaching.html',      color: 0x6c9eb0 },
+  { name: 'Pseudepigrapha',         r: 365, size: 18, dur: 165, start: 270, incl:  10, href: 'poems/pseudepigrapha.html', color: 0x628fac },
+  { name: 'The Tree',               r: 425, size:  9, dur: 206, start: 315, incl:  14, href: 'poems/the-tree.html',      color: 0xb56e52 },
 ];
 
 // ── Visited tracking ───────────────────────────────────────────────────────
@@ -127,7 +123,7 @@ function getVisited() { return new Set(JSON.parse(localStorage.getItem(VISITED_K
 function markVisited(href) { const v = getVisited(); v.add(href); localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); }
 function addVisitedRing(mesh, size, color) {
   const c = new THREE.Color(color); c.lerp(new THREE.Color(0xffffff), 0.6);
-  const geo = new THREE.RingGeometry(size * 1.5, size * 2.6, 64);
+  const geo = new THREE.RingGeometry(size * 1.2, size * 1.5, 64);
   const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
   ring.rotation.x = -Math.PI / 2 + 0.3;
   mesh.add(ring);
@@ -180,16 +176,19 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 
-  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  rc.setFromCamera(mouse, camera);
-  const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+  if (!transitioning && !entering) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    rc.setFromCamera(mouse, camera);
+    const _i = rc.intersectObjects(meshes)[0];
+    const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
 
-  if (hit !== hovered) {
-    if (hovered) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
-    hovered = hit;
-    if (hovered) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
-    tooltip.textContent = hovered?.name ?? '';
-    tooltip.style.opacity = hovered ? '1' : '0';
+    if (hit !== hovered) {
+      if (hovered?.mesh) { hovered.paused = false; hovered.mesh.material.color.setHex(0xbbbbbb); }
+      hovered = hit;
+      if (hovered?.mesh) { hovered.paused = true; hovered.mesh.material.color.setHex(0xffffff); }
+      tooltip.textContent = hovered?.name ?? '';
+      tooltip.style.opacity = hovered ? '1' : '0';
+    }
   }
 
   renderer.domElement.style.cursor =
@@ -210,6 +209,9 @@ renderer.domElement.addEventListener('mouseup', () => {
   if (dragged || transitioning || entering || !hovered) return;
 
   const p = hovered;
+  hovered = null;
+  tooltip.textContent = '';
+  tooltip.style.opacity = '0';
   transitioning = true;
   document.getElementById('label').style.opacity = '0';
 
@@ -276,7 +278,8 @@ renderer.domElement.addEventListener('wheel', e => {
       const t = e.changedTouches[0];
       mouse.set((t.clientX / innerWidth) * 2 - 1, -(t.clientY / innerHeight) * 2 + 1);
       rc.setFromCamera(mouse, camera);
-      const hit = rc.intersectObjects(meshes)[0]?.object.userData ?? null;
+      const _i = rc.intersectObjects(meshes)[0];
+      const hit = _i?.object.userData?.mesh ? _i.object.userData : null;
       if (hit && !transitioning && !entering) {
         const p = hit;
         transitioning = true;
